@@ -16,5 +16,6 @@
       "onFail": "download"
     }
   },
-  "type": "module"
+  "type": "module",
+  "private": true
 }

@@ -1,0 +1,41 @@
+# =================( 1. 依赖包与包管理器缓存 )=================
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+
+# =================( 2. Cloudflare & Wrangler 缓存与产物 )=================
+# Wrangler 本地开发会生成此目录（包含本地 D1 数据库文件、KV缓存等）
+.wrangler/
+# 某些构建产物目录
+dist/
+.output/
+worker/
+
+# =================( 3. 环境变量与私密配置 )=================
+.env
+.env.local
+.env.*.local
+*.pem
+
+# =================( 4. 数据库与迁移临时文件 )=================
+# 如果你用 drizzle-kit 且有些本地生成的临时 SQLite 库不想提交
+*.sqlite
+*.sqlite-journal
+# 备注：drizzle 生成的 migration SQL 文件（如 0000_xxx.sql）通常是需要提交到 git 的，
+# 以便团队协作和线上迁移，所以这里不忽略 migrations 文件夹。
+
+# =================( 5. IDE 与编辑器配置 )=================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# =================( 6. 系统及其他临时文件 )=================
+.DS_Store
+Thumbs.db

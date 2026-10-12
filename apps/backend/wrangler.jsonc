@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cf-backend-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-12",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "prod-d1-db",
+      "database_id": "c2ea3402-ba09-4223-bbfc-7511b00b9e85"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MY_BUCKET",
+      "bucket_name": "prod-r2-bucket"
+    }
+  ]
+}

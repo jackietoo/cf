@@ -1,6 +1,6 @@
-import { customType,sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { customType, sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import dayjs, { type Dayjs } from 'dayjs'; // 1. 补全 Dayjs 类型导入
-import { inspect } from 'node:util'; // 1. 导入 Node.js 的 inspect
+// import { inspect } from 'node:util'; // 1. 导入 Node.js 的 inspect
 import BigNumber from 'bignumber.js';
 
 
@@ -22,7 +22,7 @@ export const isoLocalDateTime = customType<{ data: Dayjs; driverData: string }>(
     d.toJSON = () => formattedStr;
 
     // 3. 挂载 inspect.custom：专门用于 console.log() 控制台打印时直接输出格式化文本
-    (d as any)[inspect.custom] = () => formattedStr;
+    // (d as any)[inspect.custom] = () => formattedStr;
 
     return d;
   },
@@ -53,20 +53,12 @@ export const bignumberText = customType<{ data: BigNumber | null; driverData: st
     bn.toJSON = () => bn.toString();
 
     // 2. Node.js console.log 优化（避免控制台展开输出 BigNumber 的内部复杂属性）
-    (bn as any)[inspect.custom] = () => bn.toString();
+    // (bn as any)[inspect.custom] = () => bn.toString();
 
     return bn;
   },
 });
 
-
-// 1. 原生 TypeScript 数值枚举
-export enum OrderStatus {
-  PENDING = 0,
-  PAID = 1,
-  SHIPPED = 2,
-  CANCELLED = 3,
-}
 
 // 1. 定义常量数组并使用 as const 断言
 export const UserRoles = ['admin', 'user', 'guest'] as const;
@@ -75,7 +67,7 @@ export const UserRoles = ['admin', 'user', 'guest'] as const;
 export type UserRole = (typeof UserRoles)[number];
 
 // 3. 使用示例
-let myRole: UserRole = 'admin'; // 完美提示与校验！
+// let myRole: UserRole = 'admin'; // 完美提示与校验！
 
 
 // 1. 字典映射对象
@@ -93,7 +85,7 @@ export const UserRoleList = Object.values(UserRoleMap) as [UserRoleType, ...User
 
 
 export const UserStatusMap = {
-INACTIVE: 0, // 未激活
+  INACTIVE: 0, // 未激活
   ACTIVE: 1,   // 正常/已激活
   FROZEN: 2,   // 冻结/禁用
   DELETED: 3,  // 注销

@@ -1,4 +1,4 @@
-import { setCookie, deleteCookie } from 'hono/cookie';
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { drizzle } from 'drizzle-orm/d1';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
@@ -65,8 +65,13 @@ authRouter.post('/login', async (c) => {
 
 // 3. 用户登出（清除 KV 和 Cookie）
 authRouter.post('/logout', async (c) => {
-    // 这里可以按需引入校验中间件，或者直接从 Cookie 中取值删除
-    const cookies = c.req.header('cookie');
+
+    const sessionId = getCookie(c, SESSION_COOKIE_NAME);
+    if (!sessionId) {
+        return c.json({ error: 'Unauthorized: No session provided' }, 401);
+    }
+    await c.env.MY_KV.delete(`session:${sessionId}`);
+
     // 简化处理：如果你有引入 getCookie 也可以用 getCookie(c, SESSION_COOKIE_NAME)
     deleteCookie(c, SESSION_COOKIE_NAME, { path: '/' });
 

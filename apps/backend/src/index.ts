@@ -1,13 +1,12 @@
-import { Hono } from 'hono';
-import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
+import { getCookie } from 'hono/cookie';
 import { cors } from 'hono/cors';
 import authRouter from './routes/auth';
 import usersRouter from './routes/user';
 import filesRouter from './routes/files';
-import { createRouter, SESSION_COOKIE_NAME, SESSION_USER_KEY, SessionUser } from './types';
+import { createRouter, SESSION_COOKIE_NAME, SESSION_USER_KEY } from './types';
+import type { SessionUser } from './types';
 
-
-const app =  createRouter();
+const app = createRouter();
 
 // 全局中间件
 app.use('/api/*', cors());

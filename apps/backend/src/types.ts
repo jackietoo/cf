@@ -1,4 +1,5 @@
-// src/types.ts
+/// <reference path="../worker-configuration.d.ts" />
+
 import { Hono } from 'hono';
 
 // 1. 定义常量

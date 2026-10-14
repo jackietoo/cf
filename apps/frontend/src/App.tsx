@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { hc } from 'hono/client';
+import type { InferResponseType } from 'hono/client'
 
 // 通过路径别名引入后端的类型
 import type { AppType } from 'backend';
+
 
 // 实例化 RPC 客户端，并绑定 AppType
 const client = hc<AppType>(import.meta.env.PROD ? '' : 'http://localhost:8787',
@@ -12,10 +14,13 @@ const client = hc<AppType>(import.meta.env.PROD ? '' : 'http://localhost:8787',
     },
   });
 
+// 2. 🚀 魔法时刻：利用 Hono 工具类型，直接自动推导 /api/users/me 状态码为 200 时的返回数据结构
+type MeResponse = InferResponseType<typeof client.api.users.me.$get, 200>
+type UserType = MeResponse['data']['user']
 
 export function App() {
   // 状态管理
-  const [user, setUser] = useState<{ id: number; username: string; name?: string | null; email?: string | null } | null>(null)
+  const [user, setUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
 
   // 表单状态
@@ -41,8 +46,9 @@ export function App() {
       const res = await client.api.users.me.$get()
       if (res.ok) {
         const data = await res.json()
-        if (data.success && data.user) {
-          setUser(data.user)
+        // 对应后端返回的 data.success 和 data.data.user
+        if (data.success && data.data?.user) {
+          setUser(data.data.user)
         }
       }
     } catch (e) {
@@ -116,7 +122,7 @@ export function App() {
         setUploadedFilename(data.data.filename)
         setMsg(`文件上传成功: ${data.data.filename}`)
       } else {
-        setError(('error' in data ? data.error : null) || '文件上传失败')
+        setError(data.message || '文件上传失败')
       }
     } catch (err) {
       setError('文件上传异常')

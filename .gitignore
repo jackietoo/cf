@@ -10,6 +10,7 @@ node_modules/
 dist/
 .output/
 worker/
+apps/backend/public
 
 # =================( 3. 环境变量与私密配置 )=================
 .env

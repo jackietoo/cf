@@ -15,5 +15,11 @@
       "binding": "MY_BUCKET",
       "bucket_name": "prod-r2-bucket"
     }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "MY_KV", // 代码中访问时使用的变量名 (例如 env.MY_KV)
+      "id": "8679e664b6894115aa4b7d3b74d05f6c" // 刚才通过命令行获取到的生产环境 ID
+    }
   ]
 }

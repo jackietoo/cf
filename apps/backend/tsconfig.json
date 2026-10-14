@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "composite": true,
+    "declaration": true,
+    "types": [
+      "vitest/globals",
+      "@cloudflare/vitest-plugin/types"
+    ],
+    // 💡 建议补充的通用最佳实践：
+    // "strict": true,             // 开启严格类型检查，捕捉潜在 Bug
+    "skipLibCheck": true, // 跳过第三方库的类型检查，大幅提升编译速度
+    "resolveJsonModule": true // 允许直接 import 导入 JSON 文件
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "drizzle.config.ts",
+    "vitest.config.ts",
+    "worker-configuration.d.ts"
+  ]
+}

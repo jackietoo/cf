@@ -1,8 +1,7 @@
-import { customType, sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
-import dayjs, { type Dayjs } from 'dayjs'; // 1. 补全 Dayjs 类型导入
 // import { inspect } from 'node:util'; // 1. 导入 Node.js 的 inspect
 import BigNumber from 'bignumber.js';
-
+import dayjs, { type Dayjs } from 'dayjs'; // 1. 补全 Dayjs 类型导入
+import { customType, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 // 自定义 ISO 格式无时区本地时间类型
 export const isoLocalDateTime = customType<{ data: Dayjs; driverData: string }>({
@@ -27,7 +26,6 @@ export const isoLocalDateTime = customType<{ data: Dayjs; driverData: string }>(
     return d;
   },
 });
-
 
 // 声明类型：data 可以为 BigNumber 或 null
 export const bignumberText = customType<{ data: BigNumber | null; driverData: string | null }>({
@@ -59,7 +57,6 @@ export const bignumberText = customType<{ data: BigNumber | null; driverData: st
   },
 });
 
-
 // 1. 定义常量数组并使用 as const 断言
 export const UserRoles = ['admin', 'user', 'guest'] as const;
 
@@ -68,7 +65,6 @@ export type UserRole = (typeof UserRoles)[number];
 
 // 3. 使用示例
 // let myRole: UserRole = 'admin'; // 完美提示与校验！
-
 
 // 1. 字典映射对象
 export const UserRoleMap = {
@@ -83,39 +79,34 @@ export type UserRoleType = (typeof UserRoleMap)[keyof typeof UserRoleMap];
 // 3. 数组 (加 List 后缀)
 export const UserRoleList = Object.values(UserRoleMap) as [UserRoleType, ...UserRoleType[]];
 
-
-export const UserStatusMap = {
+export const UserStatusEnum = {
   INACTIVE: 0, // 未激活
-  ACTIVE: 1,   // 正常/已激活
-  FROZEN: 2,   // 冻结/禁用
-  DELETED: 3,  // 注销
+  ACTIVE: 1, // 正常/已激活
+  FROZEN: 2, // 冻结/禁用
+  DELETED: 3, // 注销
 } as const;
 // 2. 用户状态类型
-export type UserStatusType = (typeof UserStatusMap)[keyof typeof UserStatusMap];
+export type UserStatusType = (typeof UserStatusEnum)[keyof typeof UserStatusEnum];
 // 3. 数组 (加 List 后缀)
-export const UserStatusList = Object.values(UserStatusMap) as [UserStatusType, ...UserStatusType[]];
-
-
+export const UserStatusList = Object.values(UserStatusEnum) as [
+  UserStatusType,
+  ...UserStatusType[],
+];
 
 // 1. 用户表
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  username: text('username').notNull().unique(),  // 用于登录或唯一标识的账号
-  name: text('name'),  // 用于界面展示的昵称/姓名
+  username: text('username').notNull().unique(), // 用于登录或唯一标识的账号
+  name: text('name'), // 用于界面展示的昵称/姓名
   phone: text('phone'),
   email: text('email'),
   passwordHash: text('password_hash'),
 
   // 2. 存储为 integer，限定值为 UserStatus 枚举
-  status: integer('status')
-    .$type<UserStatusType>()
-    .notNull()
-    .default(UserStatusMap.INACTIVE),
+  status: integer('status').$type<UserStatusType>().notNull().default(UserStatusEnum.INACTIVE),
 
   role: text('role', { enum: UserRoles }),
-  userRole: text('user_role', { enum: UserRoleList })
-    .$type<UserRoleType>(),
-
+  userRole: text('user_role', { enum: UserRoleList }).$type<UserRoleType>(),
 
   // 创建时间：新增时设置一次
   createdAt: isoLocalDateTime('created_at')
@@ -128,7 +119,6 @@ export const users = sqliteTable('users', {
     .$defaultFn(() => dayjs())
     .$onUpdateFn(() => dayjs()),
 });
-
 
 // 2. 文章表 (带关联外键)
 export const posts = sqliteTable('posts', {

@@ -1,0 +1,28 @@
+# 全局依赖与缓存
+node_modules
+.pnpm-store
+.wrangler
+
+# 后端 (backend: Cloudflare Workers + Drizzle)
+backend/dist
+backend/drizzle
+backend/migrations
+backend/pulic  # 前端打包路径
+**/worker-configuration.d.ts
+*.sqlite
+*.db
+*.sqlite-journal
+
+# 前端 (frontend: Vite + React)
+frontend/dist
+frontend/.vite
+
+# 环境变量与密钥文件
+.env
+.env.*
+
+# 包管理器锁文件
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+bun.lockb

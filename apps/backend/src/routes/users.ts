@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
-import { users } from '../db';
+import { getDb, users } from '../db';
 import { createRouter, SESSION_USER_KEY } from '../types';
 import { hashPassword, verifyPassword } from '../utils/crypto';
 import { fail, ok } from '../utils/response';
@@ -9,7 +8,7 @@ const usersRouter = createRouter()
   // 1. 获取当前登录用户信息
   .get('/me', async (c) => {
     const sessionUser = c.get(SESSION_USER_KEY);
-    const db = drizzle(c.env.DB);
+    const db = getDb(c.env);
     const user = await db
       .select({ id: users.id, username: users.username, name: users.name, email: users.email })
       .from(users)
@@ -28,7 +27,7 @@ const usersRouter = createRouter()
     if (!oldPassword || !newPassword)
       return fail(c, 'Old and new passwords required', undefined, 400);
 
-    const db = drizzle(c.env.DB);
+    const db = getDb(c.env);
     const user = await db.select().from(users).where(eq(users.id, sessionUser.userId)).get();
 
     if (!user || !(await verifyPassword(oldPassword, user.passwordHash))) {

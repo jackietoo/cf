@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { users } from '../db';
+import { getDb, users } from '../db';
 import { createRouter, SESSION_COOKIE_NAME, SESSION_TTL_SECONDS } from '../types';
 import { hashPassword, verifyPassword } from '../utils/crypto';
 import { fail, ok } from '../utils/response';
@@ -12,7 +11,7 @@ const authRouter = createRouter()
     const { username, password } = await c.req.json<{ username?: string; password?: string }>();
     if (!username || !password) return fail(c, 'Username and password required', undefined, 400);
 
-    const db = drizzle(c.env.DB);
+    const db = getDb(c.env);
     const existing = await db.select().from(users).where(eq(users.username, username)).get();
     if (existing) return fail(c, 'User already exists', undefined, 400);
 
@@ -27,7 +26,7 @@ const authRouter = createRouter()
     const { username, password } = await c.req.json<{ username?: string; password?: string }>();
     if (!username || !password) return fail(c, 'Username and password required', undefined, 400);
 
-    const db = drizzle(c.env.DB);
+    const db = getDb(c.env);
     const user = await db.select().from(users).where(eq(users.username, username)).get();
 
     if (!user || !(await verifyPassword(password, user.passwordHash))) {

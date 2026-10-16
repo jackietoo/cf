@@ -1,6 +1,8 @@
 import { getCookie } from 'hono/cookie';
 import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
 import authRouter from './routes/auth';
+import customersRouter from './routes/customers';
 import filesRouter from './routes/files';
 import usersRouter from './routes/users';
 import { createRouter, SESSION_COOKIE_NAME, SESSION_USER_KEY } from './types';
@@ -8,6 +10,9 @@ import type { SessionUser } from './types';
 import { fail, ok } from './utils/response';
 
 const app = createRouter();
+
+// 挂载全局日志中间件
+app.use('*', logger());
 
 // 全局中间件
 app.use(
@@ -50,6 +55,7 @@ app.use('/api/*', async (c, next) => {
 const routes = app
   .route('/api/auth', authRouter)
   .route('/api/users', usersRouter)
+  .route('/api/customers', customersRouter)
   .route('/api/files', filesRouter);
 
 app.get('/health', (c) => {

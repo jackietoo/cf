@@ -1,19 +1,22 @@
 import { getCookie } from 'hono/cookie';
 import { cors } from 'hono/cors';
 import authRouter from './routes/auth';
-import usersRouter from './routes/user';
 import filesRouter from './routes/files';
+import usersRouter from './routes/users';
 import { createRouter, SESSION_COOKIE_NAME, SESSION_USER_KEY } from './types';
 import type { SessionUser } from './types';
-import { ok, fail } from './utils/response';
+import { fail, ok } from './utils/response';
 
 const app = createRouter();
 
 // 全局中间件
-app.use('/api/*', cors({
-  origin: (origin) => origin, // 动态匹配并允许当前请求的 origin（完美适配本地开发和生产环境）
-  credentials: true,          // 允许携带 Cookie
-}));
+app.use(
+  '/api/*',
+  cors({
+    origin: (origin) => origin, // 动态匹配并允许当前请求的 origin（完美适配本地开发和生产环境）
+    credentials: true, // 允许携带 Cookie
+  }),
+);
 
 app.use('/api/*', async (c, next) => {
   const path = c.req.path;
@@ -32,24 +35,22 @@ app.use('/api/*', async (c, next) => {
   try {
     const sessionDataStr = await c.env.MY_KV.get(`session:${sessionId}`);
     if (!sessionDataStr) {
-      return c.json({ error: 'Unauthorized: Session expired or invalid' }, 401);
+      return fail(c, 'Unauthorized: Session expired or invalid', undefined, 401);
     }
 
     const sessionData: SessionUser = JSON.parse(sessionDataStr);
     c.set(SESSION_USER_KEY, sessionData); // 注入上下文
     await next();
   } catch (e) {
-    return c.json({ error: 'Internal server error during authentication' }, 500);
+    return fail(c, 'Internal server error during authentication', undefined, 500);
   }
 });
-
 
 // 统一挂载子路由
 const routes = app
   .route('/api/auth', authRouter)
   .route('/api/users', usersRouter)
-  .route('/api/files', filesRouter)
-  ;
+  .route('/api/files', filesRouter);
 
 app.get('/health', (c) => {
   return ok(c, 'OK', { timestamp: Date.now() });
@@ -63,7 +64,7 @@ app.onError((err, c) => {
       success: false,
       error: err.message || 'Internal Server Error',
     },
-    500
+    500,
   );
 });
 

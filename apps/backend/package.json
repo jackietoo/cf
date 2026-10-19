@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "@repo/backend",
   "version": "1.0.0",
   "description": "",
   "main": "./src/index.ts",
@@ -21,10 +21,13 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@hono/zod-validator": "^0.9.1",
+    "@repo/shared": "workspace:*",
     "bignumber.js": "^11.1.5",
-    "dayjs": "^1.11.23",
+    "dayjs": "catalog:",
     "drizzle-orm": "^0.45.4",
-    "hono": "^4.13.13"
+    "hono": "^4.13.13",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.4.0",
@@ -32,7 +35,7 @@
     "drizzle-kit": "^0.31.11",
     "glob": "^13.0.6",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2",
+    "typescript": "catalog:",
     "vitest": "^5.0.3",
     "wrangler": "^4.151.0"
   }

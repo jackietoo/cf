@@ -65,13 +65,7 @@ app.get('/health', (c) => {
 // 优化 3：添加全局错误处理和 404 捕获（生产环境必备）
 app.onError((err, c) => {
   console.error(`[Error] ${err.message}`, err.stack);
-  return c.json(
-    {
-      success: false,
-      error: err.message || 'Internal Server Error',
-    },
-    500,
-  );
+  return fail(c, err.message || 'Internal Server Error', undefined, 500);
 });
 
 app.notFound((c) => {

@@ -1,8 +1,10 @@
+import { createCustomerSchema } from '@repo/shared';
 import { and, desc, eq, like, sql } from 'drizzle-orm';
-import { getDb } from '../db';
-import { customers } from '../db/customers';
-import { createRouter } from '../types';
+import { customerContacts, customerIdentities, customers, getDb } from '../db';
+import { getNextSequence, SequenceType } from '../service/sequence';
+import { createRouter, SESSION_USER_KEY } from '../types';
 import { fail, ok } from '../utils/response';
+import { zValidator } from '../utils/validator';
 
 const customersRouter = createRouter()
   // 1. 分页查询客户列表
@@ -36,29 +38,73 @@ const customersRouter = createRouter()
     return ok(c, '获取客户列表成功', { list, pagination: { page, pageSize, total: count } });
   })
 
-  // 2. 创建客户（仅写入客户主表）
-  .post('/', async (c) => {
+  // 2. 创建客户
+  .post('/', zValidator('json', createCustomerSchema), async (c) => {
     const db = getDb(c.env);
-    const body = await c.req.json();
-    const { customerNo, customerName, customerType } = body;
+    const body = c.req.valid('json');
+    const sessionUser = c.get(SESSION_USER_KEY);
+    const customerNo = await getNextSequence(db, SequenceType.CUSTOMER_NO, sessionUser.userId);
 
-    if (!customerNo || !customerName) {
-      return fail(c, '客户号与客户名称不能为空', undefined, 400);
-    }
+    const commonFields = {
+      customerNo: customerNo,
+      createdBy: sessionUser.userId,
+      updatedBy: sessionUser.userId,
+    };
 
     try {
-      const [newCustomer] = await db
-        .insert(customers)
-        .values({
-          customerNo,
-          customerName,
-          customerType,
-        })
-        .returning();
+      const batchQueries: any[] = [
+        db
+          .insert(customers)
+          .values({
+            ...commonFields,
+            customerType: body.customerType,
+            customerName: body.identityName,
+          })
+          .returning(),
 
-      return ok(c, '创建客户成功', newCustomer, 201);
+        db
+          .insert(customerIdentities)
+          .values({
+            ...commonFields,
+            ...body,
+          })
+          .returning(),
+      ];
+      if (body.contacts && body.contacts.length > 0) {
+        const contactValues = body.contacts.map((contact) => ({
+          ...commonFields,
+          ...contact,
+        }));
+
+        batchQueries.push(db.insert(customerContacts).values(contactValues).returning());
+      }
+
+      const results = await db.batch(batchQueries as [any, ...any[]]);
+
+      return ok(
+        c,
+        '创建客户成功',
+        { customer: results[0], customerIdentity: results[1], contacts: results[2] },
+        201,
+      );
     } catch (error: any) {
-      return fail(c, `创建客户失败: ${error.message}`, undefined, 500);
+      const errorMessage = error?.message || String(error);
+
+      // 友好拦截：捕获 SQLite 的 UNIQUE 唯一约束冲突
+      if (
+        errorMessage.includes('SQLITE_CONSTRAINT_UNIQUE') ||
+        errorMessage.includes('UNIQUE constraint failed')
+      ) {
+        // 根据具体是哪个字段冲突，返回更明确的中文提示
+        if (errorMessage.includes('customer_identities.identity_no')) {
+          return fail(c, '创建客户失败：该证件号码已被注册，请检查后重试', undefined, 400);
+        }
+        // 如果以后还有其他唯一索引（例如手机号等），也可以在这里扩展
+        return fail(c, '创建客户失败：数据已存在，违反唯一性约束', undefined, 400);
+      }
+
+      // 其它未知异常保持原有逻辑
+      return fail(c, `创建客户失败: ${errorMessage}`, undefined, 500);
     }
   })
 
@@ -74,7 +120,19 @@ const customersRouter = createRouter()
       return fail(c, '客户不存在', undefined, 404);
     }
 
-    return ok(c, '获取客户详情成功', customer);
+    const customerIdentities = await db.query.customerIdentities.findFirst({
+      where: eq(customers.customerNo, customerNo),
+    });
+
+    const customerContacts = await db.query.customerContacts.findFirst({
+      where: eq(customers.customerNo, customerNo),
+    });
+
+    return ok(c, '获取客户详情成功', {
+      customer: customer,
+      customerIdentity: customerIdentities,
+      contacts: customerContacts,
+    });
   })
 
   // 4. 更新客户信息
@@ -94,23 +152,6 @@ const customersRouter = createRouter()
     }
 
     return ok(c, '更新客户成功', updated);
-  })
-
-  // 5. 删除客户（仅删除主表记录）
-  .delete('/:customerNo', async (c) => {
-    const db = getDb(c.env);
-    const customerNo = c.req.param('customerNo');
-
-    const [deleted] = await db
-      .delete(customers)
-      .where(eq(customers.customerNo, customerNo))
-      .returning();
-
-    if (!deleted) {
-      return fail(c, '客户不存在', undefined, 404);
-    }
-
-    return ok(c, '删除客户成功');
   });
 
 export default customersRouter;

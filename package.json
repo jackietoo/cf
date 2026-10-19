@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:frontend": "pnpm --filter frontend build",
-    "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter ./apps/frontend build",
+    "build:backend": "pnpm --filter ./apps/backend build",
     "build:all": "pnpm build:frontend && pnpm build:backend",
-    "deploy": "pnpm build:all && pnpm --filter backend deploy"
+    "deploy": "pnpm build:all && pnpm --filter ./apps/backend deploy"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +24,6 @@
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "prettier": "^3.9.10",
-    "typescript": "^7.0.2"
+    "typescript": "catalog:"
   }
 }

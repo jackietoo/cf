@@ -62,9 +62,6 @@ const authRouter = createRouter()
   // 3. 用户登出（清除 KV 和 Cookie）
   .post('/logout', async (c) => {
     const sessionId = getCookie(c, SESSION_COOKIE_NAME);
-    if (!sessionId) {
-      return fail(c, 'Unauthorized: No session provided', null, 401);
-    }
     await c.env.MY_KV.delete(`session:${sessionId}`);
 
     // 简化处理：如果你有引入 getCookie 也可以用 getCookie(c, SESSION_COOKIE_NAME)

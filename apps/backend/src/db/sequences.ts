@@ -3,13 +3,14 @@ import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core
 import { isoLocalDateTime } from './columns';
 
 // 枚举为字符串，需要在 ../service/sequence.ts 中配置返回的规则
-export const SequenceTypeEnum = {
-  CUSTOMER_NO: 'CUSTOMER_NO', // 客户号
+export const SequenceType = {
+  CUSTOMER_NO: 'CUSTOMER_NO', // 客户号 4位，前补0
   ORDER: 'ORDER',
   PRODUCT: 'PRODUCT',
+  TEST: 'TEST',
 } as const;
 
-export type SequenceType = (typeof SequenceTypeEnum)[keyof typeof SequenceTypeEnum];
+export type SequenceType = (typeof SequenceType)[keyof typeof SequenceType];
 
 export const sequences = sqliteTable(
   'sequences',

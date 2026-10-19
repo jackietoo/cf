@@ -1,6 +1,9 @@
 import { eq, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import { sequences, SequenceTypeEnum, type SequenceType } from '../db';
+import { sequences, SequenceType } from '../db';
+import * as schema from '../db';
+
+export { SequenceType };
 
 // 定义规则类型：支持“纯数字模式”和“格式化字符串模式”
 interface NumberRule {
@@ -16,18 +19,20 @@ interface StringRule {
 type SequenceRule = NumberRule | StringRule;
 
 // 集中管理规则：不同的类型，可以决定是返回数字还是字符串
-const SEQUENCE_RULES: Partial<Record<SequenceType, SequenceRule>> = {
-  [SequenceTypeEnum.ORDER]: { format: true, padWidth: 6, prefix: 'ORD-' },
-  [SequenceTypeEnum.PRODUCT]: { format: true, padWidth: 4, prefix: 'PROD-' },
-} as const;
+const SEQUENCE_RULES = {
+  [SequenceType.CUSTOMER_NO]: { format: true, padWidth: 4, prefix: '' },
+  [SequenceType.ORDER]: { format: true, padWidth: 6, prefix: 'ORD-' },
+  [SequenceType.PRODUCT]: { format: true, padWidth: 4, prefix: 'PROD-' },
+} as const satisfies Partial<Record<SequenceType, SequenceRule>>;
 
 /**
  * 3. 唯一的现代化函数：使用泛型和条件类型，彻底消灭所有烦人的函数重载！
  * TS 会根据你传入的 type，自动计算返回 Promise<number> 还是 Promise<string>
  */
 export async function getNextSequence<T extends SequenceType>(
-  db: DrizzleD1Database,
+  db: DrizzleD1Database<typeof schema>,
   type: T,
+  userId?: number,
 ): Promise<
   // 默认为 number
   T extends keyof typeof SEQUENCE_RULES
@@ -36,14 +41,12 @@ export async function getNextSequence<T extends SequenceType>(
       : number
     : number
 > {
-  const rule = SEQUENCE_RULES[type] || { format: false };
-
-  // 1. 数据库原子自增逻辑
+  const rule = SEQUENCE_RULES[type as keyof typeof SEQUENCE_RULES] || { format: false };
 
   // 1. 先尝试直接自增更新
   const updated = await db
     .update(sequences)
-    .set({ currentValue: sql`${sequences.currentValue} + ${sequences.step}` })
+    .set({ currentValue: sql`${sequences.currentValue} + ${sequences.step}`, updatedBy: userId })
     .where(eq(sequences.type, type))
     .returning({ currentValue: sequences.currentValue })
     .get();
@@ -53,12 +56,15 @@ export async function getNextSequence<T extends SequenceType>(
   // 2. 如果记录不存在（说明是第一次使用该类型）
   if (!updated) {
     // 尝试插入初始记录（并发时如果别人先插了，onConflictDoNothing 会安全跳过）
-    await db.insert(sequences).values({ type, currentValue: 0, step: 1 }).onConflictDoNothing();
+    await db
+      .insert(sequences)
+      .values({ type, currentValue: 0, step: 1, createdBy: userId, updatedBy: userId })
+      .onConflictDoNothing();
 
     // 必须重新执行一次 update，让数据库安全地把值递增并返回最新值
     const retryUpdated = await db
       .update(sequences)
-      .set({ currentValue: sql`${sequences.currentValue} + ${sequences.step}` })
+      .set({ currentValue: sql`${sequences.currentValue} + ${sequences.step}`, updatedBy: userId })
       .where(eq(sequences.type, type))
       .returning({ currentValue: sequences.currentValue })
       .get();
@@ -74,9 +80,9 @@ export async function getNextSequence<T extends SequenceType>(
       ? String(rawValue).padStart(strRule.padWidth, '0')
       : String(rawValue);
     const result = strRule.prefix ? `${strRule.prefix}${paddedNum}` : paddedNum;
-    return result as any;
+    return result as Awaited<ReturnType<typeof getNextSequence<T>>>;
   }
 
   // 3. 默认返回纯整型 number
-  return rawValue as any;
+  return rawValue as Awaited<ReturnType<typeof getNextSequence<T>>>;
 }

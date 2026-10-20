@@ -7,7 +7,7 @@ import {
   Gender,
   IdentityType,
   VehicleUseType,
-} from '@repo/shared';
+} from '@workspace/shared';
 import dayjs from 'dayjs';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { bignumberText, isoLocalDate, isoLocalDateTime } from './columns';

@@ -1,4 +1,4 @@
-import { createCustomerSchema } from '@repo/shared';
+import { createCustomerSchema } from '@workspace/shared';
 import { and, desc, eq, like, sql } from 'drizzle-orm';
 import { customerContacts, customerIdentities, customers, getDb } from '../db';
 import { getNextSequence, SequenceType } from '../service/sequence';

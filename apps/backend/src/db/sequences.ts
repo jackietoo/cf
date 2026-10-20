@@ -4,7 +4,9 @@ import { isoLocalDateTime } from './columns';
 
 // 枚举为字符串，需要在 ../service/sequence.ts 中配置返回的规则
 export const SequenceType = {
-  CUSTOMER_NO: 'CUSTOMER_NO', // 客户号 4位，前补0
+  CUSTOMER_NO: 'CUSTOMER_NO', // 客户号 5位，前补C0
+  LOAN_NO: 'LOAN_NO', // 贷款号 5位，前补L0
+  ASSET_NO: 'ASSET_NO', // 资产编号
   ORDER: 'ORDER',
   PRODUCT: 'PRODUCT',
   TEST: 'TEST',

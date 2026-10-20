@@ -20,7 +20,9 @@ type SequenceRule = NumberRule | StringRule;
 
 // 集中管理规则：不同的类型，可以决定是返回数字还是字符串
 const SEQUENCE_RULES = {
-  [SequenceType.CUSTOMER_NO]: { format: true, padWidth: 4, prefix: '' },
+  [SequenceType.CUSTOMER_NO]: { format: true, padWidth: 5, prefix: 'C' },
+  [SequenceType.LOAN_NO]: { format: true, padWidth: 5, prefix: 'L' },
+  [SequenceType.ASSET_NO]: { format: true, padWidth: 5, prefix: 'AST' },
   [SequenceType.ORDER]: { format: true, padWidth: 6, prefix: 'ORD-' },
   [SequenceType.PRODUCT]: { format: true, padWidth: 4, prefix: 'PROD-' },
 } as const satisfies Partial<Record<SequenceType, SequenceRule>>;

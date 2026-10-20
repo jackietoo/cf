@@ -133,3 +133,39 @@ export const createCustomerSchema = z
 //   },
 // );
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
+
+// 资产类型枚举扩展
+export const AssetType = {
+  VEHICLE: 'VEHICLE', // 车辆（支持以租代购/车抵贷）
+  GOLD: 'GOLD', // 黄金/贵金属（质押业务）
+  PROPERTY: 'PROPERTY', // 房产
+  EQUIPMENT: 'EQUIPMENT', // 机械设备
+} as const;
+export type AssetType = (typeof AssetType)[keyof typeof AssetType];
+
+// 资产过户/交易类型枚举
+export const AssetTransferType = {
+  RENT_TO_OWN_TRANSFER: 'RENT_TO_OWN_TRANSFER', // 以租代购结清过户（平台->客户）
+  PURCHASE_TRANSFER: 'PURCHASE_TRANSFER', // 购买过户（原车主->客户）
+  MORTGAGE_RELEASE: 'MORTGAGE_RELEASE', // 解押过户
+  OTHER: 'OTHER', //
+} as const;
+export type AssetTransferType = (typeof AssetTransferType)[keyof typeof AssetTransferType];
+
+// 能源类型
+export const EnergyType = {
+  GASOLINE: 'GASOLINE', // 汽油
+  DIESEL: 'DIESEL', // 柴油
+  ELECTRIC: 'ELECTRIC', // 纯电动
+  HYBRID: 'HYBRID', // 油电混合/插电混动
+  OTHER: 'OTHER', // 其他
+} as const;
+export type EnergyType = (typeof EnergyType)[keyof typeof EnergyType];
+
+// 使用性质
+export const VehicleUseType = {
+  NON_OPERATIONAL: 'NON_OPERATIONAL', // 非营运
+  OPERATIONAL: 'OPERATIONAL', // 营运（如网约车、出租车）
+  LEASE: 'LEASE', // 租赁
+} as const;
+export type VehicleUseType = (typeof VehicleUseType)[keyof typeof VehicleUseType];

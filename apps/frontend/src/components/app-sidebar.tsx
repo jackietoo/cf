@@ -1,12 +1,9 @@
-import * as React from "react"
-
-import { SearchForm } from "@/components/search-form"
-import { VersionSwitcher } from "@/components/version-switcher"
+import * as React from 'react';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible"
+} from '@workspace/ui/components/collapsible';
 import {
   Sidebar,
   SidebarContent,
@@ -18,158 +15,55 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@workspace/ui/components/sidebar"
-import { ChevronRightIcon } from "lucide-react"
+} from '@workspace/ui/components/sidebar';
+import { ChevronRightIcon } from 'lucide-react';
+import { SearchForm } from '@/components/search-form';
+import { VersionSwitcher } from '@/components/version-switcher';
 
 // This is sample data.
 const data = {
-  versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
+  versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
   navMain: [
     {
-      title: "Getting Started",
-      url: "#",
+      title: 'loan',
+      url: '#',
       items: [
         {
-          title: "Installation",
-          url: "#",
+          title: '待还',
+          url: '#',
         },
         {
-          title: "Project Structure",
-          url: "#",
+          title: '创建',
+          url: '#',
         },
       ],
     },
     {
-      title: "Build Your Application",
-      url: "#",
+      title: '客户信息',
+      url: '#',
       items: [
         {
-          title: "Routing",
-          url: "#",
+          title: '创建',
+          url: '#',
         },
         {
-          title: "Data Fetching",
-          url: "#",
+          title: '维护',
+          url: '#',
           isActive: true,
         },
         {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-        {
-          title: "Configuring",
-          url: "#",
-        },
-        {
-          title: "Testing",
-          url: "#",
-        },
-        {
-          title: "Authentication",
-          url: "#",
-        },
-        {
-          title: "Deploying",
-          url: "#",
-        },
-        {
-          title: "Upgrading",
-          url: "#",
-        },
-        {
-          title: "Examples",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "API Reference",
-      url: "#",
-      items: [
-        {
-          title: "Components",
-          url: "#",
-        },
-        {
-          title: "File Conventions",
-          url: "#",
-        },
-        {
-          title: "Functions",
-          url: "#",
-        },
-        {
-          title: "next.config.js Options",
-          url: "#",
-        },
-        {
-          title: "CLI",
-          url: "#",
-        },
-        {
-          title: "Edge Runtime",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Architecture",
-      url: "#",
-      items: [
-        {
-          title: "Accessibility",
-          url: "#",
-        },
-        {
-          title: "Fast Refresh",
-          url: "#",
-        },
-        {
-          title: "Next.js Compiler",
-          url: "#",
-        },
-        {
-          title: "Supported Browsers",
-          url: "#",
-        },
-        {
-          title: "Turbopack",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Community",
-      url: "#",
-      items: [
-        {
-          title: "Contribution Guide",
-          url: "#",
+          title: '查询',
+          url: '#',
         },
       ],
     },
   ],
-}
+};
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <VersionSwitcher
-          versions={data.versions}
-          defaultVersion={data.versions[0]}
-        />
+        <VersionSwitcher versions={data.versions} defaultVersion={data.versions[0]} />
         <SearchForm />
       </SidebarHeader>
       <SidebarContent className="gap-0">
@@ -186,7 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 render={<CollapsibleTrigger />}
               >
-                {item.title}{" "}
+                {item.title}{' '}
                 <ChevronRightIcon className="ml-auto transition-transform group-data-open/collapsible:rotate-90" />
               </SidebarGroupLabel>
               <CollapsibleContent>
@@ -194,10 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenu>
                     {item.items.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          isActive={item.isActive}
-                          render={<a href={item.url} />}
-                        >
+                        <SidebarMenuButton isActive={item.isActive} render={<a href={item.url} />}>
                           {item.title}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -211,5 +102,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

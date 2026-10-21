@@ -1,40 +1,39 @@
-import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@workspace/ui/components/button';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@workspace/ui/components/sidebar';
+import { useNavigate } from 'react-router-dom';
+import { AppSidebar } from '@/components/app-sidebar'; // shadcn sidebar-02 组件
+import { useUserStore } from '../../store/useUserStore';
 
-export default function Page() {
+export function DashboardPage() {
+  const { logout } = useUserStore();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Build Your Application</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger />
+            <span className="font-semibold text-sm">控制台</span>
+          </div>
+          <input type="file" accept="image/*" capture="environment" />
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            退出登录
+          </Button>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          {Array.from({ length: 24 }).map((_, index) => (
-            <div key={index} className="aspect-video h-12 w-full rounded-lg bg-muted/50" />
-          ))}
-        </div>
+
+        <main className="flex-1 p-6">
+          <h2 className="text-xl font-bold">欢迎回来！</h2>
+          <p className="text-muted-foreground mt-2">
+            当前已成功通过 React Router 与 Auth Context 接入系统。
+          </p>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

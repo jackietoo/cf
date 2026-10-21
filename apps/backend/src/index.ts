@@ -1,7 +1,6 @@
 import { getCookie } from 'hono/cookie';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import authRouter from './routes/auth';
 import customersRouter from './routes/customers';
 import filesRouter from './routes/files';
 import usersRouter from './routes/users';
@@ -27,12 +26,13 @@ app.use('/api/*', async (c, next) => {
   const path = c.req.path;
 
   // 1. 放行公开路由（登录、注册、健康检查等）
-  if (path === '/api/auth/login' || path === '/api/auth/register') {
+  if (path === '/api/users/login' || path === '/api/users/register') {
     return await next();
   }
 
   // 2. 其他所有 /api/* 请求进行 Session 校验
   const sessionId = getCookie(c, SESSION_COOKIE_NAME);
+  console.log(`sessionId:${sessionId}`);
   if (!sessionId) {
     return fail(c, 'Unauthorized: No session provided', undefined, 401);
   }
@@ -53,7 +53,6 @@ app.use('/api/*', async (c, next) => {
 
 // 统一挂载子路由
 const routes = app
-  .route('/api/auth', authRouter)
   .route('/api/users', usersRouter)
   .route('/api/customers', customersRouter)
   .route('/api/files', filesRouter);

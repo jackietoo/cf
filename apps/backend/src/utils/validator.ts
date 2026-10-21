@@ -5,10 +5,8 @@ import { fail } from './response';
 /**
  * 通用的 Zod 校验中间件，自带友好的错误格式化
  */
-export function zValidator<T extends z.ZodType>( // 将 ZodSchema 替换为 z.ZodType
-  target: 'json' | 'query' | 'param' | 'form',
-  schema: T,
-) {
+export function zValidator<T extends z.ZodType>(target: 'json', schema: T) {
+  // 将 ZodSchema 替换为 z.ZodType
   return baseZValidator(target, schema, (result, c) => {
     if (!result.success) {
       // 提取所有校验错误并拼接成易读的字符串

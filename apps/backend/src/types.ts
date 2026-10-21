@@ -9,8 +9,9 @@ export const SESSION_USER_KEY = 'sessionUser' as const;
 
 // 2. 定义类型
 export interface SessionUser {
-  userId: number;
+  id: number;
   username: string;
+  name: string | null;
 }
 
 export type AppEnv = {

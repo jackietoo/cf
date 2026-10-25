@@ -1,7 +1,7 @@
-import { changePasswordSchema, loginSchema, registerSchema } from '@workspace/shared';
+import { changePasswordSchema, loginSchema, registerSchema, SettingKey } from '@workspace/shared';
 import { eq } from 'drizzle-orm';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { getDb, users } from '../db';
+import { getDb, settings, users } from '../db';
 import {
   createRouter,
   SESSION_COOKIE_NAME,
@@ -16,14 +16,25 @@ import { zValidator } from '../utils/validator';
 const usersRouter = createRouter()
   // 1. 用户注册
   .post('/register', zValidator('json', registerSchema), async (c) => {
-    const { username, password } = c.req.valid('json');
     const db = getDb(c.env);
-    const existing = await db.select().from(users).where(eq(users.username, username)).get();
-    if (existing) return fail(c, 'User already exists', undefined, 400);
+    // 1. 检查注册开关状态
+    const [registerSetting] = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, SettingKey.ENABLE_REGISTER));
+    console.log(`registerSetting:${registerSetting}`);
+    // 如果开关存在且明确为 'false'，则拒绝注册
+    if (!registerSetting || registerSetting.value === 'false') {
+      return fail(c, '系统已关闭自主注册功能', null, 403);
+    }
 
-    const passwordHash = await hashPassword(password);
+    const body = c.req.valid('json');
+    const existing = await db.select().from(users).where(eq(users.username, body.username)).get();
+    if (existing) return fail(c, '账号已存在', undefined, 400);
 
-    await db.insert(users).values({ username: username, passwordHash: passwordHash });
+    const passwordHash = await hashPassword(body.password);
+
+    await db.insert(users).values({ ...body, passwordHash: passwordHash });
     return ok(c, 'Registered successfully');
   })
 
@@ -34,7 +45,7 @@ const usersRouter = createRouter()
     const user = await db.select().from(users).where(eq(users.username, username)).get();
 
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
-      return fail(c, 'Invalid username or password', undefined, 401);
+      return fail(c, '无效的用户名或者密码', undefined, 401);
     }
 
     // 1. 准备要存入 KV 的用户会话数据
@@ -76,7 +87,7 @@ const usersRouter = createRouter()
 
   // 1. 获取当前登录用户信息
   .get('/me', async (c) => {
-    const sessionUser = c.get(SESSION_USER_KEY);
+    const sessionUser: SessionUser = c.get(SESSION_USER_KEY);
     console.log(sessionUser);
     const db = getDb(c.env);
     const user = await db
@@ -92,10 +103,10 @@ const usersRouter = createRouter()
 
   // 2. 修改密码,已登录状态不会失效
   .post('/me/change-password', zValidator('json', changePasswordSchema), async (c) => {
-    const sessionUser = c.get(SESSION_USER_KEY);
+    const sessionUser: SessionUser = c.get(SESSION_USER_KEY);
     const { oldPassword, newPassword } = c.req.valid('json');
     const db = getDb(c.env);
-    const user = await db.select().from(users).where(eq(users.id, sessionUser.userId)).get();
+    const user = await db.select().from(users).where(eq(users.id, sessionUser.id)).get();
 
     if (!user || !(await verifyPassword(oldPassword, user.passwordHash))) {
       return fail(c, 'Incorrect old password', undefined, 400);

@@ -1,8 +1,8 @@
-import { createCustomerSchema } from '@workspace/shared';
+import { createCustomerSchema, updateCustomerSchema } from '@workspace/shared';
 import { and, desc, eq, like, sql } from 'drizzle-orm';
 import { customerContacts, customerIdentities, customers, getDb } from '../db';
 import { getNextSequence, SequenceType } from '../service/sequence';
-import { createRouter, SESSION_USER_KEY } from '../types';
+import { createRouter, SESSION_USER_KEY, type SessionUser } from '../types';
 import { fail, ok } from '../utils/response';
 import { zValidator } from '../utils/validator';
 
@@ -30,11 +30,13 @@ const customersRouter = createRouter()
       orderBy: [desc(customers.createdAt)],
     });
 
-    const [{ count }] = await db
+    console.log('list:', JSON.stringify(list));
+    const countResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(customers)
       .where(whereClause);
 
+    let count = countResult[0]?.count || 0;
     return ok(c, '获取客户列表成功', { list, pagination: { page, pageSize, total: count } });
   })
 
@@ -42,13 +44,13 @@ const customersRouter = createRouter()
   .post('/', zValidator('json', createCustomerSchema), async (c) => {
     const db = getDb(c.env);
     const body = c.req.valid('json');
-    const sessionUser = c.get(SESSION_USER_KEY);
-    const customerNo = await getNextSequence(db, SequenceType.CUSTOMER_NO, sessionUser.userId);
+    const sessionUser: SessionUser = c.get(SESSION_USER_KEY);
+    const customerNo = await getNextSequence(db, SequenceType.CUSTOMER_NO, sessionUser.id);
 
     const commonFields = {
       customerNo: customerNo,
-      createdBy: sessionUser.userId,
-      updatedBy: sessionUser.userId,
+      createdBy: sessionUser.id,
+      updatedBy: sessionUser.id,
     };
 
     try {
@@ -97,7 +99,7 @@ const customersRouter = createRouter()
       ) {
         // 根据具体是哪个字段冲突，返回更明确的中文提示
         if (errorMessage.includes('customer_identities.identity_no')) {
-          return fail(c, '创建客户失败：该证件号码已被注册，请检查后重试', undefined, 400);
+          return fail(c, '创建客户失败：该证件号码已存在！', undefined, 400);
         }
         // 如果以后还有其他唯一索引（例如手机号等），也可以在这里扩展
         return fail(c, '创建客户失败：数据已存在，违反唯一性约束', undefined, 400);
@@ -136,14 +138,17 @@ const customersRouter = createRouter()
   })
 
   // 4. 更新客户信息
-  .put('/:customerNo', async (c) => {
+  .put('/:customerNo', zValidator('json', updateCustomerSchema), async (c) => {
     const customerNo = c.req.param('customerNo');
     const db = getDb(c.env);
-    const { customerName, customerType } = await c.req.json();
+    const body = c.req.valid('json');
 
     const [updated] = await db
       .update(customers)
-      .set({ customerName, customerType })
+      .set({
+        customerName: body.identityName,
+        customerType: body.customerType,
+      })
       .where(eq(customers.customerNo, customerNo))
       .returning();
 

@@ -1,11 +1,18 @@
+// shared/src/user.schema.ts
 import { z } from 'zod';
 
-export const registerSchema = z.object({
-  username: z.string().min(1, '用户名至少3个字符').max(32),
-  password: z.string().min(1, '密码至少6位').max(64),
-  name: z.string().optional(),
-  email: z.email('邮箱格式错误').optional(),
-});
+export const registerSchema = z
+  .object({
+    username: z.string().min(1, '用户名至少3个字符').max(32),
+    password: z.string().min(1, '密码至少6位').max(64),
+    confirmPassword: z.string(),
+    name: z.string().optional(),
+    email: z.email('邮箱格式错误').optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: '两次输入的密码不一致',
+    path: ['confirmPassword'], // 将错误信息绑定到确认密码字段
+  });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({

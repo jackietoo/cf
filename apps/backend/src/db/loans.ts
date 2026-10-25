@@ -6,7 +6,7 @@ import {
   PlanStatus,
   RepayFreq,
   RepaymentMethod,
-} from '@repo/shared';
+} from '@workspace/shared';
 import dayjs from 'dayjs';
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { bignumberText, isoLocalDate, isoLocalDateTime } from './columns';
@@ -45,7 +45,7 @@ export const loans = sqliteTable(
     updatedBy: integer('updated_by'),
   },
   (table) => [
-    index('customer_no_idx').on(table.customerNo),
+    index('loan_customer_no_idx').on(table.customerNo),
     uniqueIndex('loan_no_idx').on(table.loanNo),
   ],
 );

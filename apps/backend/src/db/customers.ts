@@ -52,6 +52,7 @@ export const customerIdentities = sqliteTable(
     gender: text('gender').$type<Gender>(), // 性别
     ethnicity: text('ethnicity'), // 民族（例如：汉族）
     birthDate: isoLocalDate('birth_date'), // 出生日期
+    address: text('address'), // 住址
 
     issueAuthority: text('issue_authority'), // 签发机关
     issueDate: isoLocalDate('issue_date'), // 签发日期

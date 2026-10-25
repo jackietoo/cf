@@ -1,47 +1,26 @@
 // src/store/useUserStore.ts
 import type { LoginInput } from '@workspace/shared';
 import { create } from 'zustand';
-import { authApi, userApi, type UserInfo } from '../services/api';
+import { userApi, type UserInfo } from '../services';
 
 interface UserState {
   user: UserInfo | null;
   isLoading: boolean;
-  isInitialized: boolean; // 标记是否完成首次身份初始化检查
 
   // Actions
   setUser: (user: UserInfo | null) => void;
-  login: (params: LoginInput) => Promise<boolean>;
   fetchUser: () => Promise<void>;
+  login: (params: LoginInput) => Promise<void>;
   logout: () => Promise<void>;
+  /** 清理用户状态（常用于 401 全局拦截触发或登出降级处理） */
+  clearUser: () => void;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
   user: null,
-  isLoading: false,
-  isInitialized: false,
+  isLoading: true,
 
   setUser: (user) => set({ user }),
-
-  /**
-   * 用户登录方法
-   */
-  login: async (params) => {
-    try {
-      set({ isLoading: true });
-      const res = await authApi.login(params);
-      if (res.success) {
-        // 登录成功后拉取最新用户信息
-        await get().fetchUser();
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('登录失败:', error);
-      return false;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
 
   /**
    * 初始化/刷新页面时调用：校验 Cookie Session 并同步当前用户信息
@@ -52,15 +31,23 @@ export const useUserStore = create<UserState>((set, get) => ({
       const res = await userApi.getMe();
 
       if (res.success && res.data?.user) {
-        set({ user: res.data.user, isInitialized: true });
+        set({ user: res.data.user });
       } else {
-        set({ user: null, isInitialized: true });
+        set({ user: null });
       }
     } catch (error) {
-      set({ user: null, isInitialized: true });
+      get().clearUser();
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  /**
+   * 用户登录方法
+   */
+  login: async (params) => {
+    await userApi.login(params);
+    await get().fetchUser();
   },
 
   /**
@@ -68,13 +55,18 @@ export const useUserStore = create<UserState>((set, get) => ({
    */
   logout: async () => {
     try {
-      set({ isLoading: true });
-      await authApi.logout();
-    } catch (error) {
-      console.error('登出请求异常:', error);
+      await userApi.logout();
     } finally {
-      set({ user: null, isLoading: false });
-      window.location.href = '/login';
+      get().clearUser();
     }
   },
+
+  /**
+   * 清理用户状态（内部核心重置方法）
+   */
+  clearUser: () =>
+    set({
+      user: null,
+      isLoading: false,
+    }),
 }));

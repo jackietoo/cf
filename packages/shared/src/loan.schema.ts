@@ -1,9 +1,3 @@
-import dayjs, { Dayjs } from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { z } from 'zod';
-
-dayjs.extend(customParseFormat);
-
 // 还款周期单位
 export const RepayFreq = {
   DAY: 'DAY',

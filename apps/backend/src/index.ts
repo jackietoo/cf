@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import customersRouter from './routes/customers';
 import filesRouter from './routes/files';
+import settingsRouter from './routes/settings';
 import usersRouter from './routes/users';
 import { createRouter, SESSION_COOKIE_NAME, SESSION_USER_KEY } from './types';
 import type { SessionUser } from './types';
@@ -24,9 +25,13 @@ app.use(
 
 app.use('/api/*', async (c, next) => {
   const path = c.req.path;
-
+  const method = c.req.method;
   // 1. 放行公开路由（登录、注册、健康检查等）
-  if (path === '/api/users/login' || path === '/api/users/register') {
+  if (
+    path === '/api/users/login' ||
+    path === '/api/users/register' ||
+    (path !== '/api/settings' && path.startsWith('/api/settings') && method === 'GET')
+  ) {
     return await next();
   }
 
@@ -53,6 +58,7 @@ app.use('/api/*', async (c, next) => {
 
 // 统一挂载子路由
 const routes = app
+  .route('/api/settings', settingsRouter)
   .route('/api/users', usersRouter)
   .route('/api/customers', customersRouter)
   .route('/api/files', filesRouter);
